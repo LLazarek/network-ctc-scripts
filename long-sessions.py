@@ -43,9 +43,13 @@ def sessionLengthAbove(minutes):
 
 # readCSV: PathToSomeFile -> (Listof (Listof String))
 def readCSV(path):
+    first = True
     with open(path) as f:
         for row in csv.reader(f):
-            yield row
+            if first:
+                first = False
+            else:
+                yield row
 
 # dumpSessions: (Listof Session) [out OutputStream] [binary Boolean] -> None
 def dumpSessions(sessions, out = sys.stdout, binary=False):
@@ -54,7 +58,7 @@ def dumpSessions(sessions, out = sys.stdout, binary=False):
         out.buffer.write(binary)
     else:
         encoded = map(encodeSession, sessions)
-        json.dump(list(encoded), out)
+        json.dump(list(encoded), out, indent=4)
         print()
     return None
 
