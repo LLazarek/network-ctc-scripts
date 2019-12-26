@@ -2,9 +2,7 @@
 import os
 import sys
 import functools as ft
-import csv
 import argparse
-import re
 import json, pickle
 from session import *
 
@@ -12,18 +10,6 @@ from session import *
 T_min = 15
 TIMESTAMP_INDEX = 0
 # ----------------------------------------
-
-# sessionFiles: (Listof (and String PathToSomeFile)) -> (Listof Session)
-def sessionFiles(file_list):
-    client_file_pattern = "/cb(_[^/]+.csv)$"
-    # is_client_file: String -> Boolean
-    def is_client_file(path):
-        return True if re.search(client_file_pattern, path) else False
-    def client_file_to_session(client_path):
-        chunk_path = re.sub(client_file_pattern, "/vid\\1", client_path)
-        return Session(client_path, chunk_path)
-    client_files = filter(is_client_file, file_list)
-    return map(client_file_to_session, client_files)
 
 # sessionLengthAbove: Real -> (Session -> Boolean)
 def sessionLengthAbove(minutes):
@@ -41,15 +27,6 @@ def sessionLengthAbove(minutes):
 
     return is_above
 
-# readCSV: PathToSomeFile -> (Listof (Listof String))
-def readCSV(path):
-    first = True
-    with open(path) as f:
-        for row in csv.reader(f):
-            if first:
-                first = False
-            else:
-                yield row
 
 # dumpSessions: (Listof Session) [out OutputStream] [binary Boolean] -> None
 def dumpSessions(sessions, out = sys.stdout, binary=False):
@@ -62,12 +39,6 @@ def dumpSessions(sessions, out = sys.stdout, binary=False):
         print()
     return None
 
-# listDir: (and String PathToSomeDirectory) -> (Listof (and String PathToSomething))
-def listDir(path):
-    def add_path(name):
-        return os.path.join(path, name)
-    files = os.listdir(path)
-    return map(add_path, files)
 
 class BadArgs(BaseException):
     pass
@@ -79,9 +50,8 @@ def main():
     except BadArgs:
         return 1
 
-    all_files = listDir(args.directory)
-    sessions = sessionFiles(all_files)
-    sessions_above_T = filter(sessionLengthAbove(T_min), sessions)
+    sessions_above_T = filterSessionsIn(sessionLengthAbove(T_min),
+                                        args.directory)
     if args.json:
         dumpSessions(sessions_above_T)
     else:
@@ -101,17 +71,10 @@ def parseArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--directory", type=str, default=".",
                         help="The directory containing session data."
-                        "*This is a mandatory argument.*")
+                        "Default: current directory")
     parser.add_argument("-j", "--json", action="store_true",
                         help="Output json instead of binary pickle data. "
                         "Default is to output binary.")
-    # parser.add_argument("-d", "--depth", type=int, default="2",
-    #                     help="The page depth to search. "
-    #                     "Default: 2.")
-    # parser.add_argument("-n", "--negate", action="store_true",
-    #                     help="Negate content regexp: "
-    #                     "Print only page urls that do *not* contain "
-    #                     "the content pattern.")
     return parser.parse_args()
 
 
