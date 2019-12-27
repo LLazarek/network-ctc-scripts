@@ -1,5 +1,6 @@
 import csv
 import os
+import functools as ft
 
 # readCSV: PathToSomeFile -> (Listof (Listof String))
 # Reads the csv in `path` into a list of rows,
@@ -22,3 +23,9 @@ def listDir(path):
 
 def identity(x):
     return x
+
+def count(f, seq):
+    # return len(list(filter(f, seq)))
+    def count_f(count, b):
+        return ((count + 1) if f(b) else count)
+    return ft.reduce(count_f, seq, 0)

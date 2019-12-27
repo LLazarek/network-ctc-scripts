@@ -4,7 +4,8 @@ import sys
 import functools as ft
 import argparse
 import json, pickle
-from session import *
+sys.path.append(os.path.split(os.path.dirname(__file__))[0])
+from common.session import *
 
 # -------------------- Configurable --------------------
 T_min = 15

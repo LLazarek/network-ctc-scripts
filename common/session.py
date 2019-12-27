@@ -1,4 +1,4 @@
-from util import *
+from common.util import *
 from collections import namedtuple
 import re
 
